@@ -1,0 +1,19 @@
+{
+  "nav.encrypt": "Encrypt",
+  "nav.decrypt": "Decrypt",
+  "encrypt.title": "Encrypt Text",
+  "encrypt.placeholder": "Enter text to encrypt...",
+  "encrypt.passphrase": "Passphrase",
+  "encrypt.button": "Generate URL",
+  "encrypt.result": "Share this URL:",
+  "encrypt.copy": "Copy",
+  "encrypt.copied": "Copied!",
+  "decrypt.title": "Decrypt Text",
+  "decrypt.placeholder": "Paste the encrypted URL...",
+  "decrypt.passphrase": "Passphrase",
+  "decrypt.button": "Decrypt",
+  "decrypt.result": "Decrypted text:",
+  "decrypt.failure": "Decryption failed. Check the URL and passphrase.",
+  "decrypt.iterations": "PBKDF2 iterations",
+  "footer.description": "No account required · Free · Browser-only"
+}

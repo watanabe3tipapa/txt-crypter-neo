@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --color-yellow-neo: #ffd700;
+  --color-yellow-neo-light: #fff3b0;
+  --color-black-neo: #111;
+  --color-cream: #fffdf5;
+  --font-mono: 'Courier New', Courier, monospace;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-black-neo);
+  }
+}

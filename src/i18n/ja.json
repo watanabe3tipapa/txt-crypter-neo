@@ -1,0 +1,19 @@
+{
+  "nav.encrypt": "暗号化",
+  "nav.decrypt": "復号",
+  "encrypt.title": "テキストを暗号化",
+  "encrypt.placeholder": "暗号化するテキストを入力...",
+  "encrypt.passphrase": "パスフレーズ",
+  "encrypt.button": "URLを生成",
+  "encrypt.result": "このURLを共有:",
+  "encrypt.copy": "コピー",
+  "encrypt.copied": "コピーしました！",
+  "decrypt.title": "テキストを復号",
+  "decrypt.placeholder": "暗号化されたURLをペースト...",
+  "decrypt.passphrase": "パスフレーズ",
+  "decrypt.button": "復号",
+  "decrypt.result": "復号結果:",
+  "decrypt.failure": "復号に失敗しました。URLとパスフレーズを確認してください。",
+  "decrypt.iterations": "PBKDF2 イテレーション数",
+  "footer.description": "登録不要 · 無料 · ブラウザのみで動作"
+}

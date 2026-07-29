@@ -1,0 +1,18 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { t } from '../../i18n'
+---
+
+<BaseLayout title={t('encrypt.title', 'en')}>
+  <section class="space-y-6">
+    <h1 class="text-2xl font-bold">{t('encrypt.title', 'en')}</h1>
+    <p class="text-gray-500 dark:text-gray-400">{t('footer.description', 'en')}</p>
+    <div id="encrypt-root" class="space-y-4" data-lang="en">
+      <p class="text-gray-400">Loading...</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import '../../components/EncryptForm'
+</script>

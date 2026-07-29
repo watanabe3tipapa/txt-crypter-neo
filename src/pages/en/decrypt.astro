@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { t } from '../../i18n'
+---
+
+<BaseLayout title={t('decrypt.title', 'en')}>
+  <section class="space-y-6">
+    <h1 class="text-2xl font-bold">{t('decrypt.title', 'en')}</h1>
+    <div id="decrypt-root" class="space-y-4" data-lang="en">
+      <p class="text-gray-400">Loading...</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import '../../components/DecryptForm'
+</script>
