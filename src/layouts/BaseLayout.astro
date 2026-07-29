@@ -15,7 +15,7 @@ const lang = Astro.currentLocale ?? 'ja'
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title} | TXT-Crypter</title>
+    <title>{title} | TXT-Crypter-Neo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -26,7 +26,7 @@ const lang = Astro.currentLocale ?? 'ja'
   <body class="min-h-dvh bg-cream text-black-neo">
     <header class="border-b-4 border-black-neo bg-yellow-neo">
       <nav class="mx-auto flex max-w-2xl items-center justify-between px-6 py-5">
-        <a href="/" class="text-2xl font-bold tracking-tight hover:underline underline-offset-4 decoration-4">TXT-Crypter</a>
+        <a href="/" class="text-2xl font-bold tracking-tight hover:underline underline-offset-4 decoration-4">TXT-Crypter-Neo</a>
         <div class="flex gap-2 text-sm font-semibold">
           <a href={lang === 'ja' ? '/' : '/en/'} class="border-4 border-black-neo bg-white px-4 py-2 hover:bg-yellow-neo transition-colors">{t('nav.encrypt', lang)}</a>
           <a href={lang === 'ja' ? '/decrypt' : '/en/decrypt'} class="border-4 border-black-neo bg-white px-4 py-2 hover:bg-yellow-neo transition-colors">{t('nav.decrypt', lang)}</a>
