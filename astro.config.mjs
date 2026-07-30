@@ -2,13 +2,9 @@ import { defineConfig } from 'astro/config'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const SITE = process.env.SITE || 'https://watanabe3tipapa.github.io'
-const BASE = process.env.BASE || '/txt-crypter-neo'
-const START_URL = BASE === '/' ? '/' : BASE + '/'
-
 export default defineConfig({
-  site: SITE,
-  base: BASE,
+  site: 'https://watanabe3tipapa.github.io',
+  base: '/txt-crypter-neo',
   vite: {
     plugins: [
       tailwindcss(),
@@ -22,7 +18,7 @@ export default defineConfig({
           theme_color: '#ffd700',
           background_color: '#fffdf5',
           display: 'standalone',
-          start_url: START_URL,
+          start_url: '/txt-crypter-neo/',
           icons: [
             {
               src: 'icon.svg',
