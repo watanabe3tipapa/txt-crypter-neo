@@ -102,6 +102,10 @@
 - [x] ファイル暗号化/復号 (encryptFile/decryptFile, TabUI, .enc ファイル ダウンロード/アップロード)
 - [x] 13 tests 合格 (PBKDF2 5 + Argon2id 4 + File 4)
 
+### Phase G ✅ Cloudflare Pages 互換性修正
+- [x] `public/_redirects` 追加 (`/txt-crypter-neo/* /:splat 200`)
+- [x] Cloudflare Pages で env 無しで同一ビルドが動作するように
+
 ---
 
 ## 決定事項ログ
@@ -124,3 +128,4 @@
 | 2026-07-30 | Phase D: 暗号化/復号履歴 (localStorage), テンプレート保存 |
 | 2026-07-30 | Phase E: Argon2id 対応 (hash-wasm), アルゴリズム選択UI, 自動判別 |
 | 2026-07-30 | Phase F: マークダウンプレビュー (marked), ファイル暗号化保留中 |
+| 2026-07-30 | Phase G: Cloudflare Pages の base path 問題を修正 (`public/_redirects` で `/txt-crypter-neo/*` → `/*` 書き換え) |
