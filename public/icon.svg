@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#ffd700" stroke="#111" stroke-width="24"/>
+  <g transform="translate(256,280) scale(3.5)" fill="#111" text-anchor="middle" font-family="Courier New, monospace" font-weight="bold" font-size="40">
+    <text x="0" y="0">TX</text>
+    <text x="0" y="45">Neo</text>
+  </g>
+  <rect x="170" y="110" width="172" height="120" rx="12" fill="#111"/>
+  <rect x="185" y="140" width="142" height="8" rx="4" fill="#ffd700"/>
+  <rect x="195" y="160" width="122" height="8" rx="4" fill="#ffd700"/>
+</svg>
