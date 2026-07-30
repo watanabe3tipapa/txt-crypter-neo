@@ -1,4 +1,4 @@
-import { decrypt, DEFAULT_ITERATIONS } from '../lib/crypto'
+import { decrypt, DEFAULT_ITERATIONS, type Algorithm } from '../lib/crypto'
 import { showToast } from './toast'
 import { addDecryption, getDecryptionHistory, clearDecryptionHistory } from '../lib/storage'
 import en from '../i18n/en.json'
@@ -47,11 +47,18 @@ export function mountDecryptForm(root: HTMLElement): void {
           class="w-full border-4 border-black-neo bg-white p-4 text-base font-bold focus:outline-none focus:bg-yellow-neo-light"
         />
       </div>
+      <div id="algo-badge" class="hidden">
+        <span class="inline-block border-2 border-black-neo bg-yellow-neo-light px-3 py-1 text-xs font-bold uppercase"></span>
+      </div>
       <button
         id="decrypt-btn"
         class="w-full border-4 border-black-neo bg-yellow-neo px-6 py-4 text-base font-bold uppercase tracking-wider hover:bg-black-neo hover:text-yellow-neo transition-colors active:translate-y-1"
       >${t('decrypt.button', lang)}</button>
       <div id="result" class="hidden space-y-3 border-4 border-black-neo bg-yellow-neo-light p-6">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold uppercase">${t('decrypt.algorithm', lang)}</span>
+          <span id="result-algo" class="border-2 border-black-neo bg-white px-2 py-0.5 text-xs font-bold"></span>
+        </div>
         <label class="block text-xs font-bold uppercase tracking-widest">${t('decrypt.result', lang)}</label>
         <div class="flex gap-2">
           <pre id="output-text" class="flex-1 border-4 border-black-neo bg-white p-4 text-base font-medium whitespace-pre-wrap min-h-12"></pre>
@@ -75,6 +82,25 @@ export function mountDecryptForm(root: HTMLElement): void {
   const outputText = root.querySelector('#output-text') as HTMLPreElement
   const copyResultBtn = root.querySelector('#copy-result-btn') as HTMLButtonElement
   const decHistory = root.querySelector('#dec-history') as HTMLDivElement
+  const algoBadge = root.querySelector('#algo-badge') as HTMLDivElement
+  const algoBadgeSpan = algoBadge.querySelector('span')!
+  const resultAlgo = root.querySelector('#result-algo') as HTMLSpanElement
+
+  function detectAlgorithm(): void {
+    const url = urlInput.value
+    try {
+      const params = new URL(url).searchParams
+      const txt = params.get('txt')
+      if (!txt) { algoBadge.classList.add('hidden'); return }
+      const isArgon2 = txt.startsWith('v1')
+      algoBadgeSpan.textContent = isArgon2 ? t('encrypt.algorithm_argon2id', lang) : t('encrypt.algorithm_pbkdf2', lang)
+      algoBadge.classList.remove('hidden')
+    } catch {
+      algoBadge.classList.add('hidden')
+    }
+  }
+
+  urlInput.addEventListener('input', detectAlgorithm)
 
   function renderHistory(): void {
     const list = getDecryptionHistory()
@@ -121,6 +147,7 @@ export function mountDecryptForm(root: HTMLElement): void {
     try {
       const plaintext = await decrypt(url, pass, iter)
       outputText.textContent = plaintext
+      resultAlgo.textContent = algoBadgeSpan.textContent || ''
       result.classList.remove('hidden')
       addDecryption(plaintext)
       renderHistory()

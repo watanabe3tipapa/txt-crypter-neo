@@ -1,3 +1,5 @@
+export type Algorithm = 'pbkdf2' | 'argon2id'
+
 export const DEFAULT_ITERATIONS = 100_000
 const KEY_SIZE = 256
 const SALT_SIZE = 16
@@ -24,7 +26,7 @@ function decodeText(buf: ArrayBuffer): string {
   return new TextDecoder().decode(buf)
 }
 
-async function deriveKey(
+async function deriveKeyPBKDF2(
   passphrase: string,
   salt: Uint8Array,
   iterations: number,
@@ -50,20 +52,55 @@ async function deriveKey(
   )
 }
 
+async function deriveKeyArgon2id(
+  passphrase: string,
+  salt: Uint8Array,
+): Promise<CryptoKey> {
+  const { argon2id } = await import('hash-wasm')
+  const key = await argon2id({
+    password: passphrase,
+    salt,
+    iterations: 3,
+    parallelism: 1,
+    memorySize: 65536,
+    hashLength: 32,
+    outputType: 'binary',
+  })
+  return crypto.subtle.importKey(
+    'raw',
+    key as Uint8Array,
+    { name: 'AES-CBC', length: KEY_SIZE },
+    false,
+    ['encrypt', 'decrypt'],
+  )
+}
+
 export async function encrypt(
   plaintext: string,
   passphrase: string,
-  iterations: number = DEFAULT_ITERATIONS,
+  algorithm: Algorithm = 'pbkdf2',
 ): Promise<string> {
   const salt = crypto.getRandomValues(new Uint8Array(SALT_SIZE))
   const iv = crypto.getRandomValues(new Uint8Array(IV_SIZE))
-  const key = await deriveKey(passphrase, salt, iterations)
+
+  let key: CryptoKey
+  if (algorithm === 'argon2id') {
+    key = await deriveKeyArgon2id(passphrase, salt)
+  } else {
+    key = await deriveKeyPBKDF2(passphrase, salt, DEFAULT_ITERATIONS)
+  }
+
   const encrypted = await crypto.subtle.encrypt(
     { name: 'AES-CBC', iv },
     key,
     encodeText(plaintext),
   )
-  return hex(salt) + hex(iv) + hex(encrypted)
+
+  const data = hex(salt) + hex(iv) + hex(encrypted)
+  if (algorithm === 'argon2id') {
+    return 'v1' + data
+  }
+  return 'v0' + data
 }
 
 export async function decrypt(
@@ -75,11 +112,31 @@ export async function decrypt(
   const message = params.get('txt')
   if (!message) throw new Error('No encrypted data found in URL')
 
-  const salt = fromHex(message.slice(0, 32))
-  const iv = fromHex(message.slice(32, 64))
-  const encrypted = fromHex(message.slice(64))
+  let algorithm: Algorithm
+  let data: string
 
-  const key = await deriveKey(passphrase, salt, iterations)
+  if (message.startsWith('v1')) {
+    algorithm = 'argon2id'
+    data = message.slice(2)
+  } else if (message.startsWith('v0')) {
+    algorithm = 'pbkdf2'
+    data = message.slice(2)
+  } else {
+    algorithm = 'pbkdf2'
+    data = message
+  }
+
+  const salt = fromHex(data.slice(0, 32))
+  const iv = fromHex(data.slice(32, 64))
+  const encrypted = fromHex(data.slice(64))
+
+  let key: CryptoKey
+  if (algorithm === 'argon2id') {
+    key = await deriveKeyArgon2id(passphrase, salt)
+  } else {
+    key = await deriveKeyPBKDF2(passphrase, salt, iterations)
+  }
+
   const decrypted = await crypto.subtle.decrypt(
     { name: 'AES-CBC', iv },
     key,

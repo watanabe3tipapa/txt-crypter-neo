@@ -1,4 +1,4 @@
-import { encrypt } from '../lib/crypto'
+import { encrypt, type Algorithm } from '../lib/crypto'
 import { showToast } from './toast'
 import { addEncryption, getEncryptionHistory, clearEncryptionHistory, getTemplates, saveTemplate, deleteTemplate } from '../lib/storage'
 import QRCode from 'qrcode'
@@ -79,6 +79,13 @@ export function mountEncryptForm(root: HTMLElement): void {
         />
         <span id="confirm-error" class="mt-1 hidden block text-xs font-bold text-red-600"></span>
       </div>
+      <div>
+        <label class="mb-2 block text-xs font-bold uppercase tracking-widest">${t('encrypt.algorithm', lang)}</label>
+        <select id="algorithm-select" class="w-full border-4 border-black-neo bg-white p-4 text-base font-medium">
+          <option value="pbkdf2">${t('encrypt.algorithm_pbkdf2', lang)}</option>
+          <option value="argon2id">${t('encrypt.algorithm_argon2id', lang)}</option>
+        </select>
+      </div>
       <button
         id="encrypt-btn"
         disabled
@@ -124,6 +131,7 @@ export function mountEncryptForm(root: HTMLElement): void {
   const saveTemplateBtn = root.querySelector('#save-template-btn') as HTMLButtonElement
   const qrArea = root.querySelector('#qr-area') as HTMLDivElement
   const qrCanvas = root.querySelector('#qr-canvas') as HTMLCanvasElement
+  const algorithmSelect = root.querySelector('#algorithm-select') as HTMLSelectElement
   const templateSelect = root.querySelector('#template-select') as HTMLSelectElement | null
   const encHistory = root.querySelector('#enc-history') as HTMLDivElement
 
@@ -219,7 +227,7 @@ export function mountEncryptForm(root: HTMLElement): void {
     btn.textContent = '...'
 
     try {
-      const params = await encrypt(text, pass)
+      const params = await encrypt(text, pass, algorithmSelect.value as Algorithm)
       const baseUrl = `${window.location.origin}${window.location.pathname.replace(/\/?$/, '')}`
       const url = `${baseUrl}/decrypt?txt=${params}`
       outputUrl.value = url

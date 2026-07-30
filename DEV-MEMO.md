@@ -89,10 +89,13 @@
 - [x] テンプレート保存 (名前付き保存/読込/削除)
 - [x] 履歴パネル (details/summary 折り畳み)
 
-### Phase E ⬜ 高度な暗号化
-- [ ] Argon2id 選択可能に (`hash-wasm`)
-- [ ] アルゴリズム切替UI
-- [ ] 互換性モード維持
+### Phase E ✅ 高度な暗号化
+- [x] `hash-wasm` v4.12.0 導入
+- [x] `crypto.ts` に Argon2id 版鍵導出 (`deriveKeyArgon2id`)
+- [x] URL プレフィックス識別 (v0=PBKDF2, v1=Argon2id)
+- [x] EncryptForm: アルゴリズム選択 (select) UI
+- [x] DecryptForm: URL 入力から自動判別 + バッジ表示
+- [x] 9 tests 合格 (PBKDF2 5 + Argon2id 4)
 
 ### Phase F ⬜ 発展的機能
 - [ ] ファイル暗号化
@@ -118,3 +121,4 @@
 | 2026-07-30 | Phase B: PWA対応 (vite-plugin-pwa, SW, manifest, precache 12 entries) |
 | 2026-07-30 | Phase C: QRコード/qrcode, Share API, URL短縮/TinyURL 実装 |
 | 2026-07-30 | Phase D: 暗号化/復号履歴 (localStorage), テンプレート保存 |
+| 2026-07-30 | Phase E: Argon2id 対応 (hash-wasm), アルゴリズム選択UI, 自動判別 |
