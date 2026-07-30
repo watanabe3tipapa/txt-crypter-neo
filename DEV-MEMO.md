@@ -57,13 +57,14 @@
 - [x] `src/i18n/en.json`, `src/i18n/ja.json`
 - [x] 英語ページ: `/en/`, `/en/decrypt/`
 - [x] 日本語ページ: `/`, `/decrypt/`
-- [ ] 言語切替UIの改善 (リンクのみ現状)
+- [x] 言語切替UIの改善 (navボタン、JSで同ページ切替)
 
 ### Phase 5 ✅ デプロイ構成
 - [x] `.github/workflows/deploy-github-pages.yml`
 - [x] `.github/workflows/deploy-cloudflare-pages.yml`
 - [x] 両方とも `pnpm run build` → `dist/` をデプロイ
-- [ ] 実際のデプロイ実行は別途 (token/secret設定後)
+- [x] GitHub Pages 有効 (actions/deploy-pages, push で自動デプロイ)
+- [ ] Cloudflare Pages: `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` を repo secrets に設定後 push で自動デプロイ
 
 ### Phase A ✅ コアUX強化
 - [x] A-1: パスフレーズ強度表示 (簡易エントロピー計算 + バー)

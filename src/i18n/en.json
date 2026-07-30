@@ -1,6 +1,7 @@
 {
   "nav.encrypt": "Encrypt",
   "nav.decrypt": "Decrypt",
+  "nav.lang_switch": "日本語",
   "encrypt.title": "Encrypt Text",
   "encrypt.placeholder": "Enter text to encrypt...",
   "encrypt.passphrase": "Passphrase",

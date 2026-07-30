@@ -1,6 +1,7 @@
 {
   "nav.encrypt": "暗号化",
   "nav.decrypt": "復号",
+  "nav.lang_switch": "English",
   "encrypt.title": "テキストを暗号化",
   "encrypt.placeholder": "暗号化するテキストを入力...",
   "encrypt.passphrase": "パスフレーズ",

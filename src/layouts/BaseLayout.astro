@@ -47,6 +47,7 @@ const lang = Astro.currentLocale ?? 'ja'
           <button id="theme-toggle" class="border-4 border-black-neo bg-white px-3 py-2 text-base hover:bg-yellow-neo transition-colors" aria-label={t('darkmode.toggle', lang)}>
             <span class="dark:hidden">🌙</span><span class="hidden dark:inline">☀️</span>
           </button>
+          <button id="lang-toggle" class="border-4 border-black-neo bg-white px-3 py-2 text-xs font-bold uppercase hover:bg-yellow-neo transition-colors">{t('nav.lang_switch', lang)}</button>
           <a href={lang === 'ja' ? '/' : '/en/'} class="border-4 border-black-neo bg-white px-4 py-2 hover:bg-yellow-neo transition-colors">{t('nav.encrypt', lang)}</a>
           <a href={lang === 'ja' ? '/decrypt' : '/en/decrypt'} class="border-4 border-black-neo bg-white px-4 py-2 hover:bg-yellow-neo transition-colors">{t('nav.decrypt', lang)}</a>
         </div>
@@ -60,6 +61,16 @@ const lang = Astro.currentLocale ?? 'ja'
         var html = document.documentElement
         html.classList.toggle('dark')
         localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light')
+      })
+      document.getElementById('lang-toggle')?.addEventListener('click', function() {
+        var path = window.location.pathname
+        if (path.startsWith('/en/')) {
+          window.location.href = path.replace(/^\/en/, '') || '/'
+        } else if (path === '/en') {
+          window.location.href = '/'
+        } else {
+          window.location.href = '/en' + (path === '/' ? '/' : path)
+        }
       })
     </script>
   </body>
