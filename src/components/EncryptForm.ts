@@ -2,6 +2,7 @@ import { encrypt, type Algorithm } from '../lib/crypto'
 import { showToast } from './toast'
 import { addEncryption, getEncryptionHistory, clearEncryptionHistory, getTemplates, saveTemplate, deleteTemplate } from '../lib/storage'
 import QRCode from 'qrcode'
+import { marked } from 'marked'
 import en from '../i18n/en.json'
 import ja from '../i18n/ja.json'
 
@@ -48,12 +49,16 @@ export function mountEncryptForm(root: HTMLElement): void {
           ${templates.map(tmpl => `<option value="${tmpl.name}">${tmpl.name}</option>`).join('')}
         </select>
       </div>` : ''}
+      <div class="flex justify-end">
+        <button id="preview-btn" class="border-4 border-black-neo bg-white px-4 py-2 text-xs font-bold uppercase hover:bg-black-neo hover:text-white transition-colors">${t('encrypt.preview', lang)}</button>
+      </div>
       <textarea
         id="plaintext"
         rows="6"
         class="w-full border-4 border-black-neo bg-white p-4 text-base font-medium focus:outline-none focus:bg-yellow-neo-light"
         placeholder="${t('encrypt.placeholder', lang)}"
       ></textarea>
+      <div id="md-preview" class="hidden w-full border-4 border-black-neo bg-white p-4 text-base prose prose-sm max-w-none"></div>
       <div>
         <label class="mb-2 block text-xs font-bold uppercase tracking-widest" for="passphrase">${t('encrypt.passphrase', lang)}</label>
         <input
@@ -134,6 +139,8 @@ export function mountEncryptForm(root: HTMLElement): void {
   const algorithmSelect = root.querySelector('#algorithm-select') as HTMLSelectElement
   const templateSelect = root.querySelector('#template-select') as HTMLSelectElement | null
   const encHistory = root.querySelector('#enc-history') as HTMLDivElement
+  const previewBtn = root.querySelector('#preview-btn') as HTMLButtonElement
+  const mdPreview = root.querySelector('#md-preview') as HTMLDivElement
 
   function renderHistory(): void {
     const list = getEncryptionHistory()
@@ -217,6 +224,21 @@ export function mountEncryptForm(root: HTMLElement): void {
   })
 
   plaintext.addEventListener('input', updateButtonState)
+
+  let previewVisible = false
+  previewBtn.addEventListener('click', async () => {
+    previewVisible = !previewVisible
+    if (previewVisible) {
+      previewBtn.textContent = t('encrypt.edit', lang)
+      plaintext.classList.add('hidden')
+      mdPreview.classList.remove('hidden')
+      mdPreview.innerHTML = await marked.parse(plaintext.value || '*empty*')
+    } else {
+      previewBtn.textContent = t('encrypt.preview', lang)
+      plaintext.classList.remove('hidden')
+      mdPreview.classList.add('hidden')
+    }
+  })
 
   btn.addEventListener('click', async () => {
     const text = plaintext.value

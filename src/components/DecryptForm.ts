@@ -1,6 +1,7 @@
 import { decrypt, DEFAULT_ITERATIONS, type Algorithm } from '../lib/crypto'
 import { showToast } from './toast'
 import { addDecryption, getDecryptionHistory, clearDecryptionHistory } from '../lib/storage'
+import { marked } from 'marked'
 import en from '../i18n/en.json'
 import ja from '../i18n/ja.json'
 
@@ -61,9 +62,11 @@ export function mountDecryptForm(root: HTMLElement): void {
         </div>
         <label class="block text-xs font-bold uppercase tracking-widest">${t('decrypt.result', lang)}</label>
         <div class="flex gap-2">
+          <button id="preview-toggle-btn" class="border-4 border-black-neo bg-white px-3 py-2 text-xs font-bold uppercase hover:bg-black-neo hover:text-white transition-colors shrink-0">${t('decrypt.preview', lang)}</button>
           <pre id="output-text" class="flex-1 border-4 border-black-neo bg-white p-4 text-base font-medium whitespace-pre-wrap min-h-12"></pre>
           <button id="copy-result-btn" class="border-4 border-black-neo bg-white px-5 py-3 text-sm font-bold uppercase hover:bg-black-neo hover:text-white transition-colors shrink-0">${t('encrypt.copy', lang)}</button>
         </div>
+        <div id="output-rendered" class="hidden w-full border-4 border-black-neo bg-white p-4 text-base prose prose-sm max-w-none"></div>
       </div>
       <div id="error" class="hidden border-4 border-black-neo bg-red-100 p-4 text-sm font-bold text-red-700"></div>
       <details class="border-4 border-black-neo bg-white">
@@ -85,6 +88,8 @@ export function mountDecryptForm(root: HTMLElement): void {
   const algoBadge = root.querySelector('#algo-badge') as HTMLDivElement
   const algoBadgeSpan = algoBadge.querySelector('span')!
   const resultAlgo = root.querySelector('#result-algo') as HTMLSpanElement
+  const previewToggleBtn = root.querySelector('#preview-toggle-btn') as HTMLButtonElement
+  const outputRendered = root.querySelector('#output-rendered') as HTMLDivElement
 
   function detectAlgorithm(): void {
     const url = urlInput.value
@@ -167,6 +172,21 @@ export function mountDecryptForm(root: HTMLElement): void {
       showToast(t('encrypt.copied', lang), 'success')
     } catch {
       showToast('Copy failed', 'error')
+    }
+  })
+
+  let renderPreview = false
+  previewToggleBtn.addEventListener('click', async () => {
+    renderPreview = !renderPreview
+    if (renderPreview) {
+      previewToggleBtn.textContent = t('decrypt.raw', lang)
+      outputText.classList.add('hidden')
+      outputRendered.classList.remove('hidden')
+      outputRendered.innerHTML = await marked.parse(outputText.textContent || '')
+    } else {
+      previewToggleBtn.textContent = t('decrypt.preview', lang)
+      outputText.classList.remove('hidden')
+      outputRendered.classList.add('hidden')
     }
   })
 }

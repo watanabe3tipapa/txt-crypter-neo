@@ -97,9 +97,9 @@
 - [x] DecryptForm: URL 入力から自動判別 + バッジ表示
 - [x] 9 tests 合格 (PBKDF2 5 + Argon2id 4)
 
-### Phase F ⬜ 発展的機能
-- [ ] ファイル暗号化
-- [ ] マークダウンプレビュー
+### Phase F ✅ 発展的機能 (一部)
+- [x] マークダウンプレビュー (`marked`, EncryptForm/DecryptForm 両方に切替UI)
+- [ ] ファイル暗号化 (検討中)
 
 ---
 
@@ -122,3 +122,4 @@
 | 2026-07-30 | Phase C: QRコード/qrcode, Share API, URL短縮/TinyURL 実装 |
 | 2026-07-30 | Phase D: 暗号化/復号履歴 (localStorage), テンプレート保存 |
 | 2026-07-30 | Phase E: Argon2id 対応 (hash-wasm), アルゴリズム選択UI, 自動判別 |
+| 2026-07-30 | Phase F: マークダウンプレビュー (marked), ファイル暗号化保留中 |
