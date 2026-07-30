@@ -27,7 +27,7 @@ A browser-only text and file encryption tool. No server required — all encrypt
 
 ## Screenshot
 
-![Screenshot](SS.jpg)
+![Screenshot](assets/SS.jpg)
 
 ## Live Demo
 
