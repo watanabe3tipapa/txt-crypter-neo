@@ -8,6 +8,7 @@ interface Props {
 
 const { title } = Astro.props
 const lang = Astro.currentLocale ?? 'ja'
+const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
 ---
 
 <!doctype html>
@@ -24,6 +25,7 @@ const lang = Astro.currentLocale ?? 'ja'
     </style>
     <script>
       (function() {
+        var base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
         var theme = localStorage.getItem('theme')
         if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
           document.documentElement.classList.add('dark')
@@ -31,8 +33,10 @@ const lang = Astro.currentLocale ?? 'ja'
         var detected = localStorage.getItem('lang_detected')
         if (!detected) {
           var navLang = navigator.language || ''
-          if (navLang.startsWith('en') && window.location.pathname === '/') {
-            window.location.replace('/en/')
+          var path = window.location.pathname
+          var p = path.startsWith(base) ? path.slice(base.length) || '/' : path
+          if (navLang.startsWith('en') && p === '/') {
+            window.location.replace(base + '/en/')
           }
           localStorage.setItem('lang_detected', '1')
         }
@@ -42,14 +46,14 @@ const lang = Astro.currentLocale ?? 'ja'
   <body class="min-h-dvh bg-cream text-black-neo dark:bg-cream-dark dark:text-gray-100 transition-colors">
     <header class="border-b-4 border-black-neo bg-yellow-neo dark:bg-yellow-neo/80">
       <nav class="mx-auto flex max-w-2xl items-center justify-between px-6 py-5">
-        <a href="/" class="text-2xl font-bold tracking-tight hover:underline underline-offset-4 decoration-4">TXT-Crypter-Neo</a>
+        <a href={base || '/'} class="text-2xl font-bold tracking-tight hover:underline underline-offset-4 decoration-4">TXT-Crypter-Neo</a>
         <div class="flex items-center gap-2 text-sm font-semibold">
           <button id="theme-toggle" class="border-4 border-black-neo bg-white px-3 py-2 text-base hover:bg-yellow-neo transition-colors" aria-label={t('darkmode.toggle', lang)}>
             <span class="dark:hidden">🌙</span><span class="hidden dark:inline">☀️</span>
           </button>
           <button id="lang-toggle" class="border-4 border-black-neo bg-white px-3 py-2 text-xs font-bold uppercase hover:bg-yellow-neo transition-colors">{t('nav.lang_switch', lang)}</button>
-          <a href={lang === 'ja' ? '/' : '/en/'} class="border-4 border-black-neo bg-white px-4 py-2 hover:bg-yellow-neo transition-colors">{t('nav.encrypt', lang)}</a>
-          <a href={lang === 'ja' ? '/decrypt' : '/en/decrypt'} class="border-4 border-black-neo bg-white px-4 py-2 hover:bg-yellow-neo transition-colors">{t('nav.decrypt', lang)}</a>
+          <a href={lang === 'ja' ? `${base}/` : `${base}/en/`} class="border-4 border-black-neo bg-white px-4 py-2 hover:bg-yellow-neo transition-colors">{t('nav.encrypt', lang)}</a>
+          <a href={lang === 'ja' ? `${base}/decrypt` : `${base}/en/decrypt`} class="border-4 border-black-neo bg-white px-4 py-2 hover:bg-yellow-neo transition-colors">{t('nav.decrypt', lang)}</a>
         </div>
       </nav>
     </header>
@@ -63,13 +67,15 @@ const lang = Astro.currentLocale ?? 'ja'
         localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light')
       })
       document.getElementById('lang-toggle')?.addEventListener('click', function() {
+        var base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
         var path = window.location.pathname
-        if (path.startsWith('/en/')) {
-          window.location.href = path.replace(/^\/en/, '') || '/'
-        } else if (path === '/en') {
-          window.location.href = '/'
+        var p = path.startsWith(base) ? path.slice(base.length) || '/' : path
+        if (p.startsWith('/en/')) {
+          window.location.href = base + p.replace(/^\/en/, '') || base + '/'
+        } else if (p === '/en') {
+          window.location.href = base + '/'
         } else {
-          window.location.href = '/en' + (path === '/' ? '/' : path)
+          window.location.href = base + '/en' + (p === '/' ? '/' : p)
         }
       })
     </script>
