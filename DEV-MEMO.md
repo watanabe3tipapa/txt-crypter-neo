@@ -61,10 +61,9 @@
 
 ### Phase 5 ✅ デプロイ構成
 - [x] `.github/workflows/deploy-github-pages.yml`
-- [x] `.github/workflows/deploy-cloudflare-pages.yml`
-- [x] 両方とも `pnpm run build` → `dist/` をデプロイ
-- [x] GitHub Pages 有効 (actions/deploy-pages, push で自動デプロイ)
-- [ ] Cloudflare Pages: `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` を repo secrets に設定後 push で自動デプロイ
+- [x] 削除: `.github/workflows/deploy-cloudflare-pages.yml` (ネイティブGitHub連携に移行)
+- [x] GitHub Pages: 自動デプロイ完了 (https://watanabe3tipapa.github.io/txt-crypter-neo/)
+- [x] Cloudflare Pages: GitHub連携設定済 (https://txt-crypter-neo.pages.dev/、push時に自動デプロイ)
 
 ### Phase A ✅ コアUX強化
 - [x] A-1: パスフレーズ強度表示 (簡易エントロピー計算 + バー)
