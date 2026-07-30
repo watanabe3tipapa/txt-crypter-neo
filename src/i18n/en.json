@@ -27,5 +27,17 @@
   "encrypt.qr_hide": "Hide QR",
   "encrypt.share": "Share",
   "encrypt.shorten": "Shorten URL",
-  "encrypt.shorten_error": "Failed to shorten URL"
+  "encrypt.shorten_error": "Failed to shorten URL",
+  "encrypt.template_save": "Save as template",
+  "encrypt.template_name": "Template name",
+  "encrypt.template_saved": "Template saved",
+  "encrypt.template_load": "Load template",
+  "encrypt.template_delete": "Delete",
+  "history.title": "History",
+  "history.encrypt": "Encryption History",
+  "history.decrypt": "Decryption History",
+  "history.empty": "No history",
+  "history.clear": "Clear",
+  "history.templates": "Templates",
+  "history.no_templates": "No saved templates"
 }

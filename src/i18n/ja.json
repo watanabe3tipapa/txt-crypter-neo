@@ -27,5 +27,17 @@
   "encrypt.qr_hide": "QRを隠す",
   "encrypt.share": "共有",
   "encrypt.shorten": "URLを短縮",
-  "encrypt.shorten_error": "URLの短縮に失敗しました"
+  "encrypt.shorten_error": "URLの短縮に失敗しました",
+  "encrypt.template_save": "テンプレートとして保存",
+  "encrypt.template_name": "テンプレート名",
+  "encrypt.template_saved": "テンプレートを保存しました",
+  "encrypt.template_load": "テンプレートを読み込む",
+  "encrypt.template_delete": "削除",
+  "history.title": "履歴",
+  "history.encrypt": "暗号化履歴",
+  "history.decrypt": "復号履歴",
+  "history.empty": "履歴はありません",
+  "history.clear": "クリア",
+  "history.templates": "テンプレート",
+  "history.no_templates": "保存されたテンプレートはありません"
 }

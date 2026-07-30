@@ -84,9 +84,10 @@
 - [x] Share API (`navigator.share`)
 - [x] URL短縮 (TinyURL API)
 
-### Phase D ⬜ ストレージ機能
-- [ ] 暗号化/復号履歴 (`src/lib/storage.ts`)
-- [ ] テンプレート保存
+### Phase D ✅ ストレージ機能
+- [x] 暗号化/復号履歴 (`src/lib/storage.ts`, localStorage, 最大50件)
+- [x] テンプレート保存 (名前付き保存/読込/削除)
+- [x] 履歴パネル (details/summary 折り畳み)
 
 ### Phase E ⬜ 高度な暗号化
 - [ ] Argon2id 選択可能に (`hash-wasm`)
@@ -116,3 +117,4 @@
 | 2026-07-30 | Phase A: パスフレーズ強度/確認/トースト/言語自動検出/ダークモード実装 |
 | 2026-07-30 | Phase B: PWA対応 (vite-plugin-pwa, SW, manifest, precache 12 entries) |
 | 2026-07-30 | Phase C: QRコード/qrcode, Share API, URL短縮/TinyURL 実装 |
+| 2026-07-30 | Phase D: 暗号化/復号履歴 (localStorage), テンプレート保存 |

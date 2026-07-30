@@ -1,5 +1,6 @@
 import { encrypt } from '../lib/crypto'
 import { showToast } from './toast'
+import { addEncryption, getEncryptionHistory, clearEncryptionHistory, getTemplates, saveTemplate, deleteTemplate } from '../lib/storage'
 import QRCode from 'qrcode'
 import en from '../i18n/en.json'
 import ja from '../i18n/ja.json'
@@ -12,6 +13,12 @@ function t(key: keyof typeof en, lang: string): string {
 }
 
 const STRENGTH_COLORS = ['bg-red-400', 'bg-orange-400', 'bg-yellow-neo', 'bg-green-400']
+
+function escapeHtml(s: string): string {
+  const d = document.createElement('div')
+  d.textContent = s
+  return d.innerHTML
+}
 
 function estimateStrength(pass: string): { score: number; label: string } {
   let score = 0
@@ -29,8 +36,18 @@ function estimateStrength(pass: string): { score: number; label: string } {
 export function mountEncryptForm(root: HTMLElement): void {
   const lang = root.dataset.lang ?? 'ja'
 
+  const templates = getTemplates()
+
   root.innerHTML = `
     <div class="space-y-6">
+      ${templates.length ? `
+      <div>
+        <label class="mb-2 block text-xs font-bold uppercase tracking-widest">${t('encrypt.template_load', lang)}</label>
+        <select id="template-select" class="w-full border-4 border-black-neo bg-white p-4 text-base font-medium">
+          <option value="">—</option>
+          ${templates.map(tmpl => `<option value="${tmpl.name}">${tmpl.name}</option>`).join('')}
+        </select>
+      </div>` : ''}
       <textarea
         id="plaintext"
         rows="6"
@@ -77,11 +94,16 @@ export function mountEncryptForm(root: HTMLElement): void {
           <button id="qr-btn" class="border-4 border-black-neo bg-white px-4 py-2 text-xs font-bold uppercase hover:bg-black-neo hover:text-white transition-colors">${t('encrypt.qr', lang)}</button>
           <button id="share-btn" class="border-4 border-black-neo bg-white px-4 py-2 text-xs font-bold uppercase hover:bg-black-neo hover:text-white transition-colors">${t('encrypt.share', lang)}</button>
           <button id="shorten-btn" class="border-4 border-black-neo bg-white px-4 py-2 text-xs font-bold uppercase hover:bg-black-neo hover:text-white transition-colors">${t('encrypt.shorten', lang)}</button>
+          <button id="save-template-btn" class="border-4 border-black-neo bg-white px-4 py-2 text-xs font-bold uppercase hover:bg-black-neo hover:text-white transition-colors">${t('encrypt.template_save', lang)}</button>
         </div>
         <div id="qr-area" class="hidden flex justify-center border-4 border-black-neo bg-white p-4">
           <canvas id="qr-canvas"></canvas>
         </div>
       </div>
+      <details class="border-4 border-black-neo bg-white">
+        <summary class="cursor-pointer p-4 text-xs font-bold uppercase tracking-widest hover:bg-yellow-neo-light">${t('history.encrypt', lang)}</summary>
+        <div id="enc-history" class="border-t-4 border-black-neo p-4 max-h-48 overflow-y-auto"></div>
+      </details>
     </div>
   `
 
@@ -99,8 +121,36 @@ export function mountEncryptForm(root: HTMLElement): void {
   const qrBtn = root.querySelector('#qr-btn') as HTMLButtonElement
   const shareBtn = root.querySelector('#share-btn') as HTMLButtonElement
   const shortenBtn = root.querySelector('#shorten-btn') as HTMLButtonElement
+  const saveTemplateBtn = root.querySelector('#save-template-btn') as HTMLButtonElement
   const qrArea = root.querySelector('#qr-area') as HTMLDivElement
   const qrCanvas = root.querySelector('#qr-canvas') as HTMLCanvasElement
+  const templateSelect = root.querySelector('#template-select') as HTMLSelectElement | null
+  const encHistory = root.querySelector('#enc-history') as HTMLDivElement
+
+  function renderHistory(): void {
+    const list = getEncryptionHistory()
+    if (!list.length) {
+      encHistory.innerHTML = `<p class="text-xs text-gray-500">${t('history.empty', lang)}</p>`
+      return
+    }
+    encHistory.innerHTML = `
+      <div class="space-y-2">
+        ${list.map(e => `
+          <div class="border-2 border-black-neo bg-yellow-neo-light p-2 text-xs">
+            <div class="font-medium truncate">${escapeHtml(e.text)}</div>
+            <div class="text-gray-500 mt-1">${new Date(e.date).toLocaleString()}</div>
+          </div>
+        `).join('')}
+      </div>
+      <button id="clear-enc-history" class="mt-3 border-4 border-black-neo bg-white px-4 py-2 text-xs font-bold uppercase hover:bg-red-200 transition-colors">${t('history.clear', lang)}</button>
+    `
+    encHistory.querySelector('#clear-enc-history')?.addEventListener('click', () => {
+      clearEncryptionHistory()
+      renderHistory()
+    })
+  }
+
+  renderHistory()
 
   function updateStrength(): void {
     const pass = passphrase.value
@@ -140,6 +190,14 @@ export function mountEncryptForm(root: HTMLElement): void {
     btn.disabled = !plaintext.value || !pass || !confirm || pass !== confirm
   }
 
+  if (templateSelect) {
+    templateSelect.addEventListener('change', () => {
+      const tmpl = getTemplates().find(t => t.name === templateSelect.value)
+      if (tmpl) plaintext.value = tmpl.text
+      updateButtonState()
+    })
+  }
+
   passphrase.addEventListener('input', () => {
     updateStrength()
     updateButtonState()
@@ -162,9 +220,12 @@ export function mountEncryptForm(root: HTMLElement): void {
 
     try {
       const params = await encrypt(text, pass)
-      const url = `${window.location.origin}${window.location.pathname.replace(/\/?$/, '')}/decrypt?txt=${params}`
+      const baseUrl = `${window.location.origin}${window.location.pathname.replace(/\/?$/, '')}`
+      const url = `${baseUrl}/decrypt?txt=${params}`
       outputUrl.value = url
       result.classList.remove('hidden')
+      addEncryption(text, url)
+      renderHistory()
       showToast('Encrypted!', 'success')
     } catch (e) {
       console.error(e)
@@ -172,6 +233,14 @@ export function mountEncryptForm(root: HTMLElement): void {
     } finally {
       btn.disabled = false
       btn.textContent = t('encrypt.button', lang)
+    }
+  })
+
+  saveTemplateBtn.addEventListener('click', () => {
+    const name = prompt(t('encrypt.template_name', lang))
+    if (name && name.trim()) {
+      saveTemplate(name.trim(), plaintext.value)
+      showToast(t('encrypt.template_saved', lang), 'success')
     }
   })
 

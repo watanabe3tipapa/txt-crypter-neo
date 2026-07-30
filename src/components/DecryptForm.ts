@@ -1,9 +1,16 @@
 import { decrypt, DEFAULT_ITERATIONS } from '../lib/crypto'
 import { showToast } from './toast'
+import { addDecryption, getDecryptionHistory, clearDecryptionHistory } from '../lib/storage'
 import en from '../i18n/en.json'
 import ja from '../i18n/ja.json'
 
 const messages = { en, ja } as const
+
+function escapeHtml(s: string): string {
+  const d = document.createElement('div')
+  d.textContent = s
+  return d.innerHTML
+}
 
 function t(key: keyof typeof en, lang: string): string {
   const locale = lang === 'ja' ? 'ja' : 'en' as keyof typeof messages
@@ -52,6 +59,10 @@ export function mountDecryptForm(root: HTMLElement): void {
         </div>
       </div>
       <div id="error" class="hidden border-4 border-black-neo bg-red-100 p-4 text-sm font-bold text-red-700"></div>
+      <details class="border-4 border-black-neo bg-white">
+        <summary class="cursor-pointer p-4 text-xs font-bold uppercase tracking-widest hover:bg-yellow-neo-light">${t('history.decrypt', lang)}</summary>
+        <div id="dec-history" class="border-t-4 border-black-neo p-4 max-h-48 overflow-y-auto"></div>
+      </details>
     </div>
   `
 
@@ -63,6 +74,32 @@ export function mountDecryptForm(root: HTMLElement): void {
   const error = root.querySelector('#error') as HTMLDivElement
   const outputText = root.querySelector('#output-text') as HTMLPreElement
   const copyResultBtn = root.querySelector('#copy-result-btn') as HTMLButtonElement
+  const decHistory = root.querySelector('#dec-history') as HTMLDivElement
+
+  function renderHistory(): void {
+    const list = getDecryptionHistory()
+    if (!list.length) {
+      decHistory.innerHTML = `<p class="text-xs text-gray-500">${t('history.empty', lang)}</p>`
+      return
+    }
+    decHistory.innerHTML = `
+      <div class="space-y-2">
+        ${list.map(e => `
+          <div class="border-2 border-black-neo bg-yellow-neo-light p-2 text-xs">
+            <div class="font-medium truncate">${escapeHtml(e.text)}</div>
+            <div class="text-gray-500 mt-1">${new Date(e.date).toLocaleString()}</div>
+          </div>
+        `).join('')}
+      </div>
+      <button id="clear-dec-history" class="mt-3 border-4 border-black-neo bg-white px-4 py-2 text-xs font-bold uppercase hover:bg-red-200 transition-colors">${t('history.clear', lang)}</button>
+    `
+    decHistory.querySelector('#clear-dec-history')?.addEventListener('click', () => {
+      clearDecryptionHistory()
+      renderHistory()
+    })
+  }
+
+  renderHistory()
 
   const params = new URLSearchParams(window.location.search)
   const txt = params.get('txt')
@@ -85,6 +122,8 @@ export function mountDecryptForm(root: HTMLElement): void {
       const plaintext = await decrypt(url, pass, iter)
       outputText.textContent = plaintext
       result.classList.remove('hidden')
+      addDecryption(plaintext)
+      renderHistory()
     } catch (e) {
       showToast(t('decrypt.failure', lang), 'error')
       error.textContent = t('decrypt.failure', lang)
