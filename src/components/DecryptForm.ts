@@ -1,4 +1,4 @@
-import { decrypt, DEFAULT_ITERATIONS, type Algorithm } from '../lib/crypto'
+import { decrypt, decryptFile, DEFAULT_ITERATIONS, type Algorithm } from '../lib/crypto'
 import { showToast } from './toast'
 import { addDecryption, getDecryptionHistory, clearDecryptionHistory } from '../lib/storage'
 import { marked } from 'marked'
@@ -23,6 +23,11 @@ export function mountDecryptForm(root: HTMLElement): void {
 
   root.innerHTML = `
     <div class="space-y-6">
+      <div class="flex border-4 border-black-neo bg-white">
+        <button id="dec-url-tab" class="tab-btn flex-1 p-3 text-xs font-bold uppercase border-r-4 border-black-neo bg-yellow-neo">${t('decrypt.url_mode', lang)}</button>
+        <button id="dec-file-tab" class="tab-btn flex-1 p-3 text-xs font-bold uppercase">${t('decrypt.file_mode', lang)}</button>
+      </div>
+      <div id="dec-url-content">
       <div>
         <label class="mb-2 block text-xs font-bold uppercase tracking-widest" for="encrypted-url">${t('decrypt.placeholder', lang)}</label>
         <input
@@ -30,6 +35,14 @@ export function mountDecryptForm(root: HTMLElement): void {
           type="text"
           class="w-full border-4 border-black-neo bg-white p-4 text-base font-medium focus:outline-none focus:bg-yellow-neo-light"
         />
+      </div>
+      </div>
+      <div id="dec-file-content" class="hidden space-y-4">
+        <div class="border-4 border-dashed border-black-neo bg-white p-8 text-center">
+          <input id="dec-file-input" type="file" accept=".enc" class="hidden" />
+          <button id="dec-file-select-btn" class="border-4 border-black-neo bg-yellow-neo px-6 py-3 text-sm font-bold uppercase hover:bg-black-neo hover:text-yellow-neo transition-colors">${t('decrypt.file_select', lang)}</button>
+          <p id="dec-file-info" class="mt-3 text-xs text-gray-500"></p>
+        </div>
       </div>
       <div>
         <label class="mb-2 block text-xs font-bold uppercase tracking-widest" for="passphrase">${t('decrypt.passphrase', lang)}</label>
@@ -68,6 +81,9 @@ export function mountDecryptForm(root: HTMLElement): void {
         </div>
         <div id="output-rendered" class="hidden w-full border-4 border-black-neo bg-white p-4 text-base prose prose-sm max-w-none"></div>
       </div>
+      <div id="dec-file-result" class="hidden border-4 border-black-neo bg-yellow-neo-light p-6">
+        <p class="text-xs font-bold uppercase tracking-widest">${t('decrypt.file_decrypted', lang)}</p>
+      </div>
       <div id="error" class="hidden border-4 border-black-neo bg-red-100 p-4 text-sm font-bold text-red-700"></div>
       <details class="border-4 border-black-neo bg-white">
         <summary class="cursor-pointer p-4 text-xs font-bold uppercase tracking-widest hover:bg-yellow-neo-light">${t('history.decrypt', lang)}</summary>
@@ -90,6 +106,40 @@ export function mountDecryptForm(root: HTMLElement): void {
   const resultAlgo = root.querySelector('#result-algo') as HTMLSpanElement
   const previewToggleBtn = root.querySelector('#preview-toggle-btn') as HTMLButtonElement
   const outputRendered = root.querySelector('#output-rendered') as HTMLDivElement
+  const decUrlTab = root.querySelector('#dec-url-tab') as HTMLButtonElement
+  const decFileTab = root.querySelector('#dec-file-tab') as HTMLButtonElement
+  const decUrlContent = root.querySelector('#dec-url-content') as HTMLDivElement
+  const decFileContent = root.querySelector('#dec-file-content') as HTMLDivElement
+  const decFileInput = root.querySelector('#dec-file-input') as HTMLInputElement
+  const decFileSelectBtn = root.querySelector('#dec-file-select-btn') as HTMLButtonElement
+  const decFileInfo = root.querySelector('#dec-file-info') as HTMLParagraphElement
+  const decFileResult = root.querySelector('#dec-file-result') as HTMLDivElement
+
+  let decCurrentMode: 'url' | 'file' = 'url'
+  let decSelectedFile: File | null = null
+
+  function setDecMode(mode: 'url' | 'file'): void {
+    decCurrentMode = mode
+    decUrlContent.classList.toggle('hidden', mode === 'file')
+    decFileContent.classList.toggle('hidden', mode === 'url')
+    decUrlTab.className = `tab-btn flex-1 p-3 text-xs font-bold uppercase border-r-4 border-black-neo ${mode === 'url' ? 'bg-yellow-neo' : 'bg-white'}`
+    decFileTab.className = `tab-btn flex-1 p-3 text-xs font-bold uppercase ${mode === 'file' ? 'bg-yellow-neo' : 'bg-white'}`
+    btn.textContent = mode === 'file' ? t('decrypt.file_decrypt', lang) : t('decrypt.button', lang)
+    result.classList.add('hidden')
+    error.classList.add('hidden')
+    decFileResult.classList.add('hidden')
+  }
+
+  decUrlTab.addEventListener('click', () => setDecMode('url'))
+  decFileTab.addEventListener('click', () => setDecMode('file'))
+
+  decFileSelectBtn.addEventListener('click', () => decFileInput.click())
+  decFileInput.addEventListener('change', () => {
+    decSelectedFile = decFileInput.files?.[0] ?? null
+    decFileInfo.textContent = decSelectedFile
+      ? `${t('encrypt.file_selected', lang)} ${decSelectedFile.name} (${(decSelectedFile.size / 1024).toFixed(1)} KB)`
+      : ''
+  })
 
   function detectAlgorithm(): void {
     const url = urlInput.value
@@ -139,15 +189,47 @@ export function mountDecryptForm(root: HTMLElement): void {
   }
 
   btn.addEventListener('click', async () => {
-    const url = urlInput.value
     const pass = passphrase.value
-    const iter = parseInt(iterations.value, 10) || DEFAULT_ITERATIONS
-    if (!url || !pass) return
+    if (!pass) return
 
     btn.disabled = true
     btn.textContent = '...'
     result.classList.add('hidden')
     error.classList.add('hidden')
+    decFileResult.classList.add('hidden')
+
+    if (decCurrentMode === 'file') {
+      if (!decSelectedFile) { btn.disabled = false; btn.textContent = t('decrypt.file_decrypt', lang); return }
+      try {
+        const buf = await decSelectedFile.arrayBuffer()
+        const encryptedBytes = new Uint8Array(buf)
+        const { data: decryptedData, algorithm: algo } = await decryptFile(encryptedBytes, pass)
+        const blob = new Blob([decryptedData])
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        const originalName = decSelectedFile.name.endsWith('.enc')
+          ? decSelectedFile.name.slice(0, -4)
+          : decSelectedFile.name
+        a.href = url
+        a.download = originalName
+        a.click()
+        URL.revokeObjectURL(url)
+        decFileResult.classList.remove('hidden')
+        showToast(t('decrypt.file_decrypted', lang), 'success')
+      } catch (e) {
+        showToast(t('decrypt.failure', lang), 'error')
+        error.textContent = t('decrypt.failure', lang)
+        error.classList.remove('hidden')
+      } finally {
+        btn.disabled = false
+        btn.textContent = t('decrypt.file_decrypt', lang)
+      }
+      return
+    }
+
+    const url = urlInput.value
+    const iter = parseInt(iterations.value, 10) || DEFAULT_ITERATIONS
+    if (!url) { btn.disabled = false; btn.textContent = t('decrypt.button', lang); return }
 
     try {
       const plaintext = await decrypt(url, pass, iter)

@@ -1,4 +1,4 @@
-import { encrypt, type Algorithm } from '../lib/crypto'
+import { encrypt, encryptFile, type Algorithm } from '../lib/crypto'
 import { showToast } from './toast'
 import { addEncryption, getEncryptionHistory, clearEncryptionHistory, getTemplates, saveTemplate, deleteTemplate } from '../lib/storage'
 import QRCode from 'qrcode'
@@ -41,6 +41,11 @@ export function mountEncryptForm(root: HTMLElement): void {
 
   root.innerHTML = `
     <div class="space-y-6">
+      <div class="flex border-4 border-black-neo bg-white">
+        <button id="text-tab" class="tab-btn flex-1 p-3 text-xs font-bold uppercase border-r-4 border-black-neo bg-yellow-neo">${t('encrypt.text_mode', lang)}</button>
+        <button id="file-tab" class="tab-btn flex-1 p-3 text-xs font-bold uppercase">${t('encrypt.file_mode', lang)}</button>
+      </div>
+      <div id="text-content">
       ${templates.length ? `
       <div>
         <label class="mb-2 block text-xs font-bold uppercase tracking-widest">${t('encrypt.template_load', lang)}</label>
@@ -59,6 +64,14 @@ export function mountEncryptForm(root: HTMLElement): void {
         placeholder="${t('encrypt.placeholder', lang)}"
       ></textarea>
       <div id="md-preview" class="hidden w-full border-4 border-black-neo bg-white p-4 text-base prose prose-sm max-w-none"></div>
+      </div>
+      <div id="file-content" class="hidden space-y-4">
+        <div class="border-4 border-dashed border-black-neo bg-white p-8 text-center">
+          <input id="file-input" type="file" class="hidden" />
+          <button id="file-select-btn" class="border-4 border-black-neo bg-yellow-neo px-6 py-3 text-sm font-bold uppercase hover:bg-black-neo hover:text-yellow-neo transition-colors">${t('encrypt.file_select', lang)}</button>
+          <p id="file-info" class="mt-3 text-xs text-gray-500"></p>
+        </div>
+      </div>
       <div>
         <label class="mb-2 block text-xs font-bold uppercase tracking-widest" for="passphrase">${t('encrypt.passphrase', lang)}</label>
         <input
@@ -116,6 +129,9 @@ export function mountEncryptForm(root: HTMLElement): void {
         <summary class="cursor-pointer p-4 text-xs font-bold uppercase tracking-widest hover:bg-yellow-neo-light">${t('history.encrypt', lang)}</summary>
         <div id="enc-history" class="border-t-4 border-black-neo p-4 max-h-48 overflow-y-auto"></div>
       </details>
+      <div id="file-result" class="hidden border-4 border-black-neo bg-yellow-neo-light p-6">
+        <p class="text-xs font-bold uppercase tracking-widest">${t('encrypt.file_saved', lang)}</p>
+      </div>
     </div>
   `
 
@@ -141,6 +157,41 @@ export function mountEncryptForm(root: HTMLElement): void {
   const encHistory = root.querySelector('#enc-history') as HTMLDivElement
   const previewBtn = root.querySelector('#preview-btn') as HTMLButtonElement
   const mdPreview = root.querySelector('#md-preview') as HTMLDivElement
+  const textTab = root.querySelector('#text-tab') as HTMLButtonElement
+  const fileTab = root.querySelector('#file-tab') as HTMLButtonElement
+  const textContent = root.querySelector('#text-content') as HTMLDivElement
+  const fileContent = root.querySelector('#file-content') as HTMLDivElement
+  const fileInput = root.querySelector('#file-input') as HTMLInputElement
+  const fileSelectBtn = root.querySelector('#file-select-btn') as HTMLButtonElement
+  const fileInfo = root.querySelector('#file-info') as HTMLParagraphElement
+  const fileResult = root.querySelector('#file-result') as HTMLDivElement
+
+  let currentMode: 'text' | 'file' = 'text'
+  let selectedFile: File | null = null
+
+  function setMode(mode: 'text' | 'file'): void {
+    currentMode = mode
+    textContent.classList.toggle('hidden', mode === 'file')
+    fileContent.classList.toggle('hidden', mode === 'text')
+    textTab.className = `tab-btn flex-1 p-3 text-xs font-bold uppercase border-r-4 border-black-neo ${mode === 'text' ? 'bg-yellow-neo' : 'bg-white'}`
+    fileTab.className = `tab-btn flex-1 p-3 text-xs font-bold uppercase ${mode === 'file' ? 'bg-yellow-neo' : 'bg-white'}`
+    btn.textContent = mode === 'file' ? t('encrypt.file_encrypt', lang) : t('encrypt.button', lang)
+    result.classList.add('hidden')
+    fileResult.classList.add('hidden')
+    updateButtonState()
+  }
+
+  textTab.addEventListener('click', () => setMode('text'))
+  fileTab.addEventListener('click', () => setMode('file'))
+
+  fileSelectBtn.addEventListener('click', () => fileInput.click())
+  fileInput.addEventListener('change', () => {
+    selectedFile = fileInput.files?.[0] ?? null
+    fileInfo.textContent = selectedFile
+      ? `${t('encrypt.file_selected', lang)} ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB)`
+      : ''
+    updateButtonState()
+  })
 
   function renderHistory(): void {
     const list = getEncryptionHistory()
@@ -202,7 +253,11 @@ export function mountEncryptForm(root: HTMLElement): void {
   function updateButtonState(): void {
     const pass = passphrase.value
     const confirm = confirmPass.value
-    btn.disabled = !plaintext.value || !pass || !confirm || pass !== confirm
+    if (currentMode === 'file') {
+      btn.disabled = !selectedFile || !pass || !confirm || pass !== confirm
+    } else {
+      btn.disabled = !plaintext.value || !pass || !confirm || pass !== confirm
+    }
   }
 
   if (templateSelect) {
@@ -241,12 +296,38 @@ export function mountEncryptForm(root: HTMLElement): void {
   })
 
   btn.addEventListener('click', async () => {
-    const text = plaintext.value
     const pass = passphrase.value
-    if (!text || !pass) return
+    if (!pass) return
 
     btn.disabled = true
     btn.textContent = '...'
+
+    if (currentMode === 'file') {
+      if (!selectedFile) return
+      try {
+        const buf = await selectedFile.arrayBuffer()
+        const encrypted = await encryptFile(new Uint8Array(buf), pass, algorithmSelect.value as Algorithm)
+        const blob = new Blob([encrypted], { type: 'application/octet-stream' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${selectedFile.name}.enc`
+        a.click()
+        URL.revokeObjectURL(url)
+        fileResult.classList.remove('hidden')
+        showToast(t('encrypt.file_saved', lang), 'success')
+      } catch (e) {
+        console.error(e)
+        showToast('Encryption failed', 'error')
+      } finally {
+        btn.disabled = false
+        btn.textContent = t('encrypt.file_encrypt', lang)
+      }
+      return
+    }
+
+    const text = plaintext.value
+    if (!text) return
 
     try {
       const params = await encrypt(text, pass, algorithmSelect.value as Algorithm)

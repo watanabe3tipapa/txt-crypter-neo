@@ -144,3 +144,58 @@ export async function decrypt(
   )
   return decodeText(decrypted)
 }
+
+export async function encryptFile(
+  data: Uint8Array,
+  passphrase: string,
+  algorithm: Algorithm = 'pbkdf2',
+): Promise<Uint8Array> {
+  const salt = crypto.getRandomValues(new Uint8Array(SALT_SIZE))
+  const iv = crypto.getRandomValues(new Uint8Array(IV_SIZE))
+
+  let key: CryptoKey
+  if (algorithm === 'argon2id') {
+    key = await deriveKeyArgon2id(passphrase, salt)
+  } else {
+    key = await deriveKeyPBKDF2(passphrase, salt, DEFAULT_ITERATIONS)
+  }
+
+  const encrypted = await crypto.subtle.encrypt(
+    { name: 'AES-CBC', iv },
+    key,
+    data,
+  )
+
+  const algoByte = algorithm === 'argon2id' ? new Uint8Array([1]) : new Uint8Array([0])
+  const result = new Uint8Array(1 + SALT_SIZE + IV_SIZE + encrypted.byteLength)
+  result.set(algoByte, 0)
+  result.set(salt, 1)
+  result.set(iv, 1 + SALT_SIZE)
+  result.set(new Uint8Array(encrypted), 1 + SALT_SIZE + IV_SIZE)
+  return result
+}
+
+export async function decryptFile(
+  data: Uint8Array,
+  passphrase: string,
+): Promise<{ data: Uint8Array; algorithm: Algorithm }> {
+  const algoByte = data[0]
+  const algorithm: Algorithm = algoByte === 1 ? 'argon2id' : 'pbkdf2'
+  const salt = data.slice(1, 1 + SALT_SIZE)
+  const iv = data.slice(1 + SALT_SIZE, 1 + SALT_SIZE + IV_SIZE)
+  const encrypted = data.slice(1 + SALT_SIZE + IV_SIZE)
+
+  let key: CryptoKey
+  if (algorithm === 'argon2id') {
+    key = await deriveKeyArgon2id(passphrase, salt)
+  } else {
+    key = await deriveKeyPBKDF2(passphrase, salt, DEFAULT_ITERATIONS)
+  }
+
+  const decrypted = await crypto.subtle.decrypt(
+    { name: 'AES-CBC', iv },
+    key,
+    encrypted,
+  )
+  return { data: new Uint8Array(decrypted), algorithm }
+}

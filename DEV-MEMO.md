@@ -97,9 +97,10 @@
 - [x] DecryptForm: URL 入力から自動判別 + バッジ表示
 - [x] 9 tests 合格 (PBKDF2 5 + Argon2id 4)
 
-### Phase F ✅ 発展的機能 (一部)
+### Phase F ✅ 発展的機能
 - [x] マークダウンプレビュー (`marked`, EncryptForm/DecryptForm 両方に切替UI)
-- [ ] ファイル暗号化 (検討中)
+- [x] ファイル暗号化/復号 (encryptFile/decryptFile, TabUI, .enc ファイル ダウンロード/アップロード)
+- [x] 13 tests 合格 (PBKDF2 5 + Argon2id 4 + File 4)
 
 ---
 
