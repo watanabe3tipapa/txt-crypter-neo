@@ -79,10 +79,10 @@
 - [x] Service Worker (12エントリ precache, 25.8KiB)
 - [x] Google Fonts ランタイムキャッシュ設定
 
-### Phase C ⬜ QR・シェア・短縮
-- [ ] QRコード生成 (`qrcode`)
-- [ ] Share API
-- [ ] URL短縮 (外部API)
+### Phase C ✅ QR・シェア・短縮
+- [x] QRコード生成 (`qrcode` v1.5.4, canvas出力)
+- [x] Share API (`navigator.share`)
+- [x] URL短縮 (TinyURL API)
 
 ### Phase D ⬜ ストレージ機能
 - [ ] 暗号化/復号履歴 (`src/lib/storage.ts`)
@@ -115,3 +115,4 @@
 | 2026-07-30 | Phase A〜F 全機能追加計画策定 |
 | 2026-07-30 | Phase A: パスフレーズ強度/確認/トースト/言語自動検出/ダークモード実装 |
 | 2026-07-30 | Phase B: PWA対応 (vite-plugin-pwa, SW, manifest, precache 12 entries) |
+| 2026-07-30 | Phase C: QRコード/qrcode, Share API, URL短縮/TinyURL 実装 |

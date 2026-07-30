@@ -22,5 +22,10 @@
   "strength.fair": "Fair",
   "strength.strong": "Strong",
   "strength.very_strong": "Very Strong",
-  "darkmode.toggle": "Toggle dark mode"
+  "darkmode.toggle": "Toggle dark mode",
+  "encrypt.qr": "Show QR",
+  "encrypt.qr_hide": "Hide QR",
+  "encrypt.share": "Share",
+  "encrypt.shorten": "Shorten URL",
+  "encrypt.shorten_error": "Failed to shorten URL"
 }

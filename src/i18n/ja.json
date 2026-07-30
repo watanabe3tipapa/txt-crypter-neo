@@ -22,5 +22,10 @@
   "strength.fair": "普通",
   "strength.strong": "強い",
   "strength.very_strong": "非常に強い",
-  "darkmode.toggle": "ダークモード切替"
+  "darkmode.toggle": "ダークモード切替",
+  "encrypt.qr": "QRを表示",
+  "encrypt.qr_hide": "QRを隠す",
+  "encrypt.share": "共有",
+  "encrypt.shorten": "URLを短縮",
+  "encrypt.shorten_error": "URLの短縮に失敗しました"
 }

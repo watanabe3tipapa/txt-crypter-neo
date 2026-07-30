@@ -1,5 +1,6 @@
 import { encrypt } from '../lib/crypto'
 import { showToast } from './toast'
+import QRCode from 'qrcode'
 import en from '../i18n/en.json'
 import ja from '../i18n/ja.json'
 
@@ -70,7 +71,15 @@ export function mountEncryptForm(root: HTMLElement): void {
         <label class="block text-xs font-bold uppercase tracking-widest">${t('encrypt.result', lang)}</label>
         <div class="flex gap-2">
           <input id="output-url" readonly class="flex-1 border-4 border-black-neo bg-white p-3 text-sm font-medium" />
-          <button id="copy-btn" class="border-4 border-black-neo bg-white px-5 py-3 text-sm font-bold uppercase hover:bg-black-neo hover:text-white transition-colors">${t('encrypt.copy', lang)}</button>
+          <button id="copy-btn" class="border-4 border-black-neo bg-white px-5 py-3 text-sm font-bold uppercase hover:bg-black-neo hover:text-white transition-colors shrink-0">${t('encrypt.copy', lang)}</button>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button id="qr-btn" class="border-4 border-black-neo bg-white px-4 py-2 text-xs font-bold uppercase hover:bg-black-neo hover:text-white transition-colors">${t('encrypt.qr', lang)}</button>
+          <button id="share-btn" class="border-4 border-black-neo bg-white px-4 py-2 text-xs font-bold uppercase hover:bg-black-neo hover:text-white transition-colors">${t('encrypt.share', lang)}</button>
+          <button id="shorten-btn" class="border-4 border-black-neo bg-white px-4 py-2 text-xs font-bold uppercase hover:bg-black-neo hover:text-white transition-colors">${t('encrypt.shorten', lang)}</button>
+        </div>
+        <div id="qr-area" class="hidden flex justify-center border-4 border-black-neo bg-white p-4">
+          <canvas id="qr-canvas"></canvas>
         </div>
       </div>
     </div>
@@ -87,6 +96,11 @@ export function mountEncryptForm(root: HTMLElement): void {
   const result = root.querySelector('#result') as HTMLDivElement
   const outputUrl = root.querySelector('#output-url') as HTMLInputElement
   const copyBtn = root.querySelector('#copy-btn') as HTMLButtonElement
+  const qrBtn = root.querySelector('#qr-btn') as HTMLButtonElement
+  const shareBtn = root.querySelector('#share-btn') as HTMLButtonElement
+  const shortenBtn = root.querySelector('#shorten-btn') as HTMLButtonElement
+  const qrArea = root.querySelector('#qr-area') as HTMLDivElement
+  const qrCanvas = root.querySelector('#qr-canvas') as HTMLCanvasElement
 
   function updateStrength(): void {
     const pass = passphrase.value
@@ -167,6 +181,47 @@ export function mountEncryptForm(root: HTMLElement): void {
       showToast(t('encrypt.copied', lang), 'success')
     } catch {
       showToast('Copy failed', 'error')
+    }
+  })
+
+  let qrVisible = false
+  qrBtn.addEventListener('click', async () => {
+    qrVisible = !qrVisible
+    qrArea.classList.toggle('hidden', !qrVisible)
+    qrBtn.textContent = qrVisible ? t('encrypt.qr_hide', lang) : t('encrypt.qr', lang)
+    if (qrVisible && outputUrl.value) {
+      await QRCode.toCanvas(qrCanvas, outputUrl.value, {
+        width: 200,
+        margin: 1,
+        color: { dark: '#111', light: '#fff' },
+      })
+    }
+  })
+
+  shareBtn.addEventListener('click', async () => {
+    if (!navigator.share) {
+      showToast('Share not supported', 'error')
+      return
+    }
+    try {
+      await navigator.share({ url: outputUrl.value })
+    } catch { /* user cancelled */ }
+  })
+
+  shortenBtn.addEventListener('click', async () => {
+    shortenBtn.disabled = true
+    shortenBtn.textContent = '...'
+    try {
+      const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(outputUrl.value)}`)
+      if (!res.ok) throw new Error()
+      const short = await res.text()
+      outputUrl.value = short
+      showToast('URL shortened!', 'success')
+    } catch {
+      showToast(t('encrypt.shorten_error', lang), 'error')
+    } finally {
+      shortenBtn.disabled = false
+      shortenBtn.textContent = t('encrypt.shorten', lang)
     }
   })
 }
