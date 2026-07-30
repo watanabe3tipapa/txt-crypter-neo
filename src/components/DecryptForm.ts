@@ -1,4 +1,5 @@
 import { decrypt, DEFAULT_ITERATIONS } from '../lib/crypto'
+import { showToast } from './toast'
 import en from '../i18n/en.json'
 import ja from '../i18n/ja.json'
 
@@ -43,9 +44,12 @@ export function mountDecryptForm(root: HTMLElement): void {
         id="decrypt-btn"
         class="w-full border-4 border-black-neo bg-yellow-neo px-6 py-4 text-base font-bold uppercase tracking-wider hover:bg-black-neo hover:text-yellow-neo transition-colors active:translate-y-1"
       >${t('decrypt.button', lang)}</button>
-      <div id="result" class="hidden space-y-2 border-4 border-black-neo bg-yellow-neo-light p-6">
+      <div id="result" class="hidden space-y-3 border-4 border-black-neo bg-yellow-neo-light p-6">
         <label class="block text-xs font-bold uppercase tracking-widest">${t('decrypt.result', lang)}</label>
-        <pre id="output-text" class="border-4 border-black-neo bg-white p-4 text-base font-medium whitespace-pre-wrap"></pre>
+        <div class="flex gap-2">
+          <pre id="output-text" class="flex-1 border-4 border-black-neo bg-white p-4 text-base font-medium whitespace-pre-wrap min-h-12"></pre>
+          <button id="copy-result-btn" class="border-4 border-black-neo bg-white px-5 py-3 text-sm font-bold uppercase hover:bg-black-neo hover:text-white transition-colors shrink-0">${t('encrypt.copy', lang)}</button>
+        </div>
       </div>
       <div id="error" class="hidden border-4 border-black-neo bg-red-100 p-4 text-sm font-bold text-red-700"></div>
     </div>
@@ -58,6 +62,7 @@ export function mountDecryptForm(root: HTMLElement): void {
   const result = root.querySelector('#result') as HTMLDivElement
   const error = root.querySelector('#error') as HTMLDivElement
   const outputText = root.querySelector('#output-text') as HTMLPreElement
+  const copyResultBtn = root.querySelector('#copy-result-btn') as HTMLButtonElement
 
   const params = new URLSearchParams(window.location.search)
   const txt = params.get('txt')
@@ -81,11 +86,21 @@ export function mountDecryptForm(root: HTMLElement): void {
       outputText.textContent = plaintext
       result.classList.remove('hidden')
     } catch (e) {
+      showToast(t('decrypt.failure', lang), 'error')
       error.textContent = t('decrypt.failure', lang)
       error.classList.remove('hidden')
     } finally {
       btn.disabled = false
       btn.textContent = t('decrypt.button', lang)
+    }
+  })
+
+  copyResultBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(outputText.textContent ?? '')
+      showToast(t('encrypt.copied', lang), 'success')
+    } catch {
+      showToast('Copy failed', 'error')
     }
   })
 }

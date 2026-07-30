@@ -15,5 +15,12 @@
   "decrypt.result": "Decrypted text:",
   "decrypt.failure": "Decryption failed. Check the URL and passphrase.",
   "decrypt.iterations": "PBKDF2 iterations",
-  "footer.description": "No account required · Free · Browser-only"
+  "footer.description": "No account required · Free · Browser-only",
+  "encrypt.confirm": "Confirm passphrase",
+  "encrypt.confirm_error": "Passphrases do not match",
+  "strength.weak": "Weak",
+  "strength.fair": "Fair",
+  "strength.strong": "Strong",
+  "strength.very_strong": "Very Strong",
+  "darkmode.toggle": "Toggle dark mode"
 }

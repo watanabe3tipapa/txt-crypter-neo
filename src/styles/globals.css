@@ -5,11 +5,28 @@
   --color-yellow-neo-light: #fff3b0;
   --color-black-neo: #111;
   --color-cream: #fffdf5;
+  --color-cream-dark: #1a1a1a;
+  --color-surface-dark: #2a2a2a;
   --font-mono: 'Courier New', Courier, monospace;
 }
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   * {
     border-color: var(--color-black-neo);
   }
 }
+
+@keyframes slide-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes slide-out {
+  from { transform: translateX(0);    opacity: 1; }
+  to   { transform: translateX(100%); opacity: 0; }
+}
+
+.animate-slide-in  { animation: slide-in  0.2s ease-out; }
+.animate-slide-out { animation: slide-out 0.2s ease-in; }

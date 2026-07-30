@@ -15,5 +15,12 @@
   "decrypt.result": "復号結果:",
   "decrypt.failure": "復号に失敗しました。URLとパスフレーズを確認してください。",
   "decrypt.iterations": "PBKDF2 イテレーション数",
-  "footer.description": "登録不要 · 無料 · ブラウザのみで動作"
+  "footer.description": "登録不要 · 無料 · ブラウザのみで動作",
+  "encrypt.confirm": "パスフレーズ（確認）",
+  "encrypt.confirm_error": "パスフレーズが一致しません",
+  "strength.weak": "弱い",
+  "strength.fair": "普通",
+  "strength.strong": "強い",
+  "strength.very_strong": "非常に強い",
+  "darkmode.toggle": "ダークモード切替"
 }

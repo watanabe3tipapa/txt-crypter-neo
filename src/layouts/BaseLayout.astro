@@ -22,12 +22,31 @@ const lang = Astro.currentLocale ?? 'ja'
     <style>
       body { font-family: 'Space Grotesk', sans-serif; }
     </style>
+    <script>
+      (function() {
+        var theme = localStorage.getItem('theme')
+        if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark')
+        }
+        var detected = localStorage.getItem('lang_detected')
+        if (!detected) {
+          var navLang = navigator.language || ''
+          if (navLang.startsWith('en') && window.location.pathname === '/') {
+            window.location.replace('/en/')
+          }
+          localStorage.setItem('lang_detected', '1')
+        }
+      })()
+    </script>
   </head>
-  <body class="min-h-dvh bg-cream text-black-neo">
-    <header class="border-b-4 border-black-neo bg-yellow-neo">
+  <body class="min-h-dvh bg-cream text-black-neo dark:bg-cream-dark dark:text-gray-100 transition-colors">
+    <header class="border-b-4 border-black-neo bg-yellow-neo dark:bg-yellow-neo/80">
       <nav class="mx-auto flex max-w-2xl items-center justify-between px-6 py-5">
         <a href="/" class="text-2xl font-bold tracking-tight hover:underline underline-offset-4 decoration-4">TXT-Crypter-Neo</a>
-        <div class="flex gap-2 text-sm font-semibold">
+        <div class="flex items-center gap-2 text-sm font-semibold">
+          <button id="theme-toggle" class="border-4 border-black-neo bg-white px-3 py-2 text-base hover:bg-yellow-neo transition-colors" aria-label={t('darkmode.toggle', lang)}>
+            <span class="dark:hidden">🌙</span><span class="hidden dark:inline">☀️</span>
+          </button>
           <a href={lang === 'ja' ? '/' : '/en/'} class="border-4 border-black-neo bg-white px-4 py-2 hover:bg-yellow-neo transition-colors">{t('nav.encrypt', lang)}</a>
           <a href={lang === 'ja' ? '/decrypt' : '/en/decrypt'} class="border-4 border-black-neo bg-white px-4 py-2 hover:bg-yellow-neo transition-colors">{t('nav.decrypt', lang)}</a>
         </div>
@@ -36,5 +55,12 @@ const lang = Astro.currentLocale ?? 'ja'
     <main class="mx-auto max-w-2xl px-6 py-12">
       <slot />
     </main>
+    <script>
+      document.getElementById('theme-toggle')?.addEventListener('click', function() {
+        var html = document.documentElement
+        html.classList.toggle('dark')
+        localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light')
+      })
+    </script>
   </body>
 </html>
